@@ -1,6 +1,9 @@
+"use client"
+
 import Image from "next/image"
 import Link from "next/link"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { motion } from "framer-motion"
 
 const featuredProducts = [
   {
@@ -23,6 +26,20 @@ const featuredProducts = [
   },
 ]
 
+const containerVariants = {
+  hidden: {},
+  visible: {
+    transition: {
+      staggerChildren: 0.2,
+    },
+  },
+}
+
+const itemVariants = {
+  hidden: { opacity: 0, y: 20 },
+  visible: { opacity: 1, y: 0 },
+}
+
 export function FeaturedProductsSection() {
   return (
     <section id="products" className="w-full py-12 md:py-24 lg:py-32 bg-muted">
@@ -35,27 +52,37 @@ export function FeaturedProductsSection() {
             </p>
           </div>
         </div>
-        <div className="mx-auto grid grid-cols-1 gap-6 py-12 sm:grid-cols-2 lg:grid-cols-3">
+        <motion.div
+          className="mx-auto grid grid-cols-1 gap-6 py-12 sm:grid-cols-2 lg:grid-cols-3"
+          variants={containerVariants}
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true, amount: 0.2 }}
+        >
           {featuredProducts.map((product) => (
-            <Link href={product.href} key={product.name}>
-              <Card className="overflow-hidden transition-transform duration-300 ease-in-out hover:-translate-y-2 hover:shadow-xl">
-                <CardHeader className="p-0">
-                  <Image
-                    src={product.image || "/placeholder.svg"}
-                    alt={product.name}
-                    width={400}
-                    height={300}
-                    className="w-full h-48 object-cover"
-                  />
-                </CardHeader>
-                <CardContent className="p-6">
-                  <CardTitle className="text-xl font-bold">{product.name}</CardTitle>
-                  <p className="mt-2 text-muted-foreground">{product.description}</p>
-                </CardContent>
-              </Card>
-            </Link>
+            <motion.div key={product.name} variants={itemVariants}>
+              <Link href={product.href}>
+                <motion.div whileHover={{ y: -8, scale: 1.02 }} transition={{ type: "spring", stiffness: 300 }}>
+                  <Card className="overflow-hidden h-full shadow-md hover:shadow-xl transition-shadow duration-300">
+                    <CardHeader className="p-0">
+                      <Image
+                        src={product.image || "/placeholder.svg"}
+                        alt={product.name}
+                        width={400}
+                        height={300}
+                        className="w-full h-48 object-cover"
+                      />
+                    </CardHeader>
+                    <CardContent className="p-6">
+                      <CardTitle className="text-xl font-bold">{product.name}</CardTitle>
+                      <p className="mt-2 text-muted-foreground">{product.description}</p>
+                    </CardContent>
+                  </Card>
+                </motion.div>
+              </Link>
+            </motion.div>
           ))}
-        </div>
+        </motion.div>
       </div>
     </section>
   )

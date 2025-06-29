@@ -15,6 +15,7 @@ import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
 import { Menu, Factory } from "lucide-react"
 import * as React from "react"
 import { cn } from "@/lib/utils"
+import { motion } from "framer-motion"
 
 const productCategories = [
   {
@@ -59,7 +60,42 @@ const productCategories = [
   },
 ]
 
+const mobileNavLinks = [
+  { href: "/", text: "Home" },
+  { href: "/about", text: "About" },
+  { href: "/products", text: "Products" },
+  { href: "/portfolio", text: "Portfolio" },
+  { href: "/contact", text: "Contact" },
+]
+
+const mobileMenuVariants = {
+  open: {
+    transition: { staggerChildren: 0.07, delayChildren: 0.2 },
+  },
+  closed: {
+    transition: { staggerChildren: 0.05, staggerDirection: -1 },
+  },
+}
+
+const mobileLinkVariants = {
+  open: {
+    y: 0,
+    opacity: 1,
+    transition: {
+      y: { stiffness: 1000, velocity: -100 },
+    },
+  },
+  closed: {
+    y: 50,
+    opacity: 0,
+    transition: {
+      y: { stiffness: 1000 },
+    },
+  },
+}
+
 export function Header() {
+  const [isOpen, setIsOpen] = React.useState(false)
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="container flex h-14 items-center">
@@ -116,7 +152,7 @@ export function Header() {
         </div>
         <div className="flex flex-1 items-center justify-between space-x-2 md:justify-end">
           <div className="md:hidden">
-            <Sheet>
+            <Sheet open={isOpen} onOpenChange={setIsOpen}>
               <SheetTrigger asChild>
                 <Button variant="ghost" size="icon">
                   <Menu className="h-5 w-5" />
@@ -128,29 +164,32 @@ export function Header() {
                   <Factory className="h-6 w-6" />
                   <span className="font-bold">Hopes Industrial</span>
                 </Link>
-                <div className="grid gap-2 py-6">
-                  <Link href="/" className="flex w-full items-center py-2 text-lg font-semibold">
-                    Home
-                  </Link>
-                  <Link href="/about" className="flex w-full items-center py-2 text-lg font-semibold">
-                    About
-                  </Link>
-                  <Link href="/products" className="flex w-full items-center py-2 text-lg font-semibold">
-                    Products
-                  </Link>
-                  <Link href="/portfolio" className="flex w-full items-center py-2 text-lg font-semibold">
-                    Portfolio
-                  </Link>
-                  <Link href="/contact" className="flex w-full items-center py-2 text-lg font-semibold">
-                    Contact
-                  </Link>
-                </div>
+                <motion.div
+                  className="grid gap-2 py-6"
+                  variants={mobileMenuVariants}
+                  initial="closed"
+                  animate={isOpen ? "open" : "closed"}
+                >
+                  {mobileNavLinks.map((link) => (
+                    <motion.div key={link.href} variants={mobileLinkVariants}>
+                      <Link
+                        href={link.href}
+                        className="flex w-full items-center py-2 text-lg font-semibold"
+                        onClick={() => setIsOpen(false)}
+                      >
+                        {link.text}
+                      </Link>
+                    </motion.div>
+                  ))}
+                </motion.div>
               </SheetContent>
             </Sheet>
           </div>
-          <Link href="/contact" className="hidden md:inline-flex">
-            <Button>Get a Quote</Button>
-          </Link>
+          <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+            <Link href="/contact" className="hidden md:inline-flex">
+              <Button>Get a Quote</Button>
+            </Link>
+          </motion.div>
         </div>
       </div>
     </header>
@@ -162,17 +201,18 @@ const ListItem = React.forwardRef<React.ElementRef<"a">, React.ComponentPropsWit
     return (
       <li>
         <NavigationMenuLink asChild>
-          <a
+          <motion.a
             ref={ref}
             className={cn(
               "block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground",
               className,
             )}
+            whileHover={{ x: 4 }}
             {...props}
           >
             <div className="text-sm font-medium leading-none">{title}</div>
             <p className="line-clamp-2 text-sm leading-snug text-muted-foreground">{children}</p>
-          </a>
+          </motion.a>
         </NavigationMenuLink>
       </li>
     )
