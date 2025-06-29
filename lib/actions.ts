@@ -3,7 +3,6 @@
 import { createClient } from "@/lib/supabase/server"
 import { z } from "zod"
 import { Resend } from "resend"
-import Twilio from "twilio"
 import { InquiryConfirmationEmail } from "@/components/emails/inquiry-confirmation"
 import { InternalNotificationEmail } from "@/components/emails/internal-notification"
 
@@ -16,16 +15,6 @@ function getResendClient() {
     return null
   }
   return new Resend(key)
-}
-
-function getTwilioClient() {
-  const accountSid = process.env.TWILIO_ACCOUNT_SID
-  const authToken = process.env.TWILIO_AUTH_TOKEN
-  if (!accountSid || !authToken) {
-    console.warn("[Twilio] Account SID or Auth Token is missing. Skipping WhatsApp notification.")
-    return null
-  }
-  return Twilio(accountSid, authToken)
 }
 
 // --- Zod Schema ---
@@ -70,10 +59,9 @@ export async function submitInquiry(prevState: any, formData: FormData) {
     }
   }
 
-  // 3. Send Notifications (Email & WhatsApp)
+  // 3. Send Email Notifications
   const { name, email, company, phone, message } = validatedFields.data
 
-  // Send Emails
   try {
     const resend = getResendClient()
     if (resend) {
@@ -100,24 +88,6 @@ export async function submitInquiry(prevState: any, formData: FormData) {
     }
   } catch (emailError) {
     console.error("[Resend] Email send failed:", emailError)
-  }
-
-  // Send WhatsApp Message
-  try {
-    const twilio = getTwilioClient()
-    const fromNumber = process.env.TWILIO_WHATSAPP_FROM_NUMBER
-    const toNumber = process.env.INTERNAL_WHATSAPP_TO_NUMBER
-    if (twilio && fromNumber && toNumber) {
-      const messageBody = `*New Lead: Hopes Industrial*\n\n*Name:* ${name}\n*Email:* ${email}\n*Company:* ${company || "N/A"}\n*Phone:* ${phone || "N/A"}\n\n*Message:*\n${message}`
-
-      await twilio.messages.create({
-        from: `whatsapp:${fromNumber}`,
-        to: `whatsapp:${toNumber}`,
-        body: messageBody,
-      })
-    }
-  } catch (whatsappError) {
-    console.error("[Twilio] WhatsApp send failed:", whatsappError)
   }
 
   return {
